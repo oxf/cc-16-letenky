@@ -9,5 +9,5 @@ import java.util.List;
  */
 public interface LocationService {
 
-    public List<Location> addLocation(String cityTo, String emailLogin);
+    public Location addLocation(String cityTo, String emailLogin);
 }

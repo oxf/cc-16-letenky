@@ -1,17 +1,15 @@
 package cz.codecamp.services;
 
-import cz.codecamp.model.Flight;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-import javax.mail.Transport;
+import javax.mail.MessagingException;
 import java.util.List;
 
-/**
- * Created by jakubbares on 11/23/16.
- */
+@Service
 public interface EmailService {
 
     @Scheduled(fixedRate = 86400000) //24 hours cycle
-    public void sendEmailToUsers();
+    void sendEmailsToUsers() throws MessagingException;
 
 }

@@ -24,9 +24,9 @@ public interface UserRepository extends CrudRepository<User, Long> {
 //    @Query("UPDATE Users u SET u.cityFrom = :cityFrom, u.pctAvgPriceMax = :pctAvgPriceMax,u.flyDurationMinutesMax = :flyDurationMinutesMax,u.dateFrom = :dateFrom,u.dateTo = :dateTo WHERE u.user_name = :userName")
 //    User  updateUserSettings(@Param("cityFrom") Location cityFrom, @Param("userName") String userName);
 
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE User u SET u.cities_to = :citiesTo WHERE u.user_name = :userName")
-    void updateCitiesTo(@Param("citiesTo") List<Location> citiesTo, @Param("userName") String userName);
+//    @Modifying(clearAutomatically = true)
+//    @Query("UPDATE User u SET u.cities_to = :citiesTo WHERE u.user_name = :userName")
+//    void updateCitiesTo(@Param("citiesTo") List<Location> citiesTo, @Param("userName") String userName);
 }
 
 
