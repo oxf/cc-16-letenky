@@ -5,8 +5,8 @@ import cz.codecamp.model.Flight;
 import cz.codecamp.model.Location;
 import cz.codecamp.model.User;
 import cz.codecamp.repository.UserRepository;
+import cz.codecamp.services.EmailService;
 import cz.codecamp.services.FlightService;
-import cz.codecamp.services.FlightServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,6 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -55,6 +54,9 @@ public class LetenkyApplication {
 
     @Autowired
     FlightService flightService;
+
+    @Autowired
+    EmailService emailService;
 
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", new Locale("cs", "cz"));
 
@@ -118,11 +120,12 @@ public class LetenkyApplication {
         return properties;
     }
 
+
     @Bean
     public Message getMessage(Session session) throws MessagingException {
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(email));
-        message.setSubject("Pošli jídelák: " + LocalDate.now().format(timeFormatter));
+        message.setSubject("Letenky dle Vašich přání " + LocalDate.now().format(timeFormatter));
         return message;
     }
 
@@ -149,6 +152,12 @@ public class LetenkyApplication {
     @Qualifier("google")
     public HttpEntity<String> httpGoogleEntity(@Qualifier("google") HttpHeaders headers) {
         return new HttpEntity<>("parameters", headers);
+    }
+
+    @Bean
+    public String testEmail() throws IOException, MessagingException {
+        emailService.sendEmailsToUsers();
+        return "Done";
     }
 
 //	@Bean

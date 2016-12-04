@@ -2,70 +2,59 @@ package cz.codecamp.services;
 
 import cz.codecamp.model.Flight;
 import cz.codecamp.model.User;
-import cz.codecamp.repository.FlightRepository;
 import cz.codecamp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import java.io.IOException;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
-/**
- * Created by jakubbares on 11/23/16.
- */
-public class EmailServiceImpl {
+@Service
+public class EmailServiceImpl implements EmailService {
 
-    @Autowired
-    FlightRepository flightRepository;
     @Autowired
     UserRepository userRepository;
     @Autowired
     FlightService flightService;
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final Message message;
 
+    private final TemplateEngine templateEngine;
+
+    private Context context = new Context(new Locale("cs", "cz"));
+
+    @Autowired
+    public EmailServiceImpl(Message message, TemplateEngine templateEngine) {
+        this.message = message;
+        this.templateEngine = templateEngine;
+    }
 
     @Scheduled(fixedRate = 86400000) //24 hours cycle
-    public void sendEmailToUsers() throws MessagingException, IOException {
+    public void sendEmailsToUsers() throws MessagingException {
         Iterable<User> users = userRepository.findAll();
         for (User user : users){
             String emailLogin = user.getEmailLogin();
-            flightService.saveFlightsFromJson();
-            List<Flight> flights = flightService.getFlightsForUserToday(emailLogin);
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "utf-8");
-            String htmlMsg = "<h3>Newly found flights for you </h3>\n" +
-                    "<tr>\n" +
-                    "                <th><h6>City From</h6></th>\n" +
-                    "                <th><h6>City To</h6></th>\n" +
-                    "                <th><h6>Price</h6></th>\n" +
-                    "                <th><h6>Fly duration</h6></th>\n" +
-                    "                <th><h6>Date</h6></th>\n" +
-                    "                <th><h6>Nights in destination</h6></th>\n" +
-                    "            </tr>\n" +
-                    "            <tr th:each=\"flight : ${flights}\">\n" +
-                    "                <td th:text=\"${flight.getCityFrom()}\">CityFrom</td>\n" +
-                    "                <td th:text=\"${flight.getCityTo()}\">CityTo</td>\n" +
-                    "                <td th:text=\"${flight.getPrice()}\">Price</td>\n" +
-                    "                <td th:text=\"${flight.getFlightDurationMinutes()/60}\">FlightDurationMinutes</td>\n" +
-                    "                <td th:text=\"${flight.getDepTime()}\">Price</td>\n" +
-                    "                <td th:text=\"${flight.getNightsInDest()}\">FlightDurationMinutes</td>\n" +
-                    "            </tr>";
-            mimeMessage.setContent(htmlMsg, "text/html");
-            helper.setTo(emailLogin);
-            helper.setSubject("Your flights found today");
-            helper.setFrom("kubres@gmail.com");
-            mailSender.send(mimeMessage);
+            List<Flight> flights = flightService.getFlightsForUser(emailLogin);
+            message.setRecipients(Message.RecipientType.TO,
+                    InternetAddress.parse(emailLogin));
+            message.setContent(buildLunchMenuList(flights), "text/html; charset=utf-8");
+            Transport.send(message);
         }
+    }
 
+    private String buildLunchMenuList(List<Flight> flights) throws MessagingException {
+        context.setVariable("name", "Letenky dle Vašich přání");
+        context.setVariable("date", new Date());
+        context.setVariable("flights", flights);
+        return templateEngine.process("email-template", context);
     }
 
 }

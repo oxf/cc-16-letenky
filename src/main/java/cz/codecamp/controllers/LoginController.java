@@ -82,7 +82,7 @@ public class LoginController {
     public String addCity(Model model){
         model.addAttribute("location", new Location());
         User user = userRepository.findByUserName("kubres");
-        model.addAttribute("citiesTo", user.getCitiesTo());
+        model.addAttribute("citiesTo", locationRepository.findAll());
         model.addAttribute("user", user);
         return "cities";
     }
@@ -94,8 +94,8 @@ public class LoginController {
         List<Location> citiesTo = user.getCitiesTo();
         citiesTo.add(location);
         user.setCitiesTo(citiesTo);
-        userRepository.updateCitiesTo(citiesTo, "kubres");
-        model.addAttribute("citiesTo", user.getCitiesTo());
+//        userRepository.updateCitiesTo(citiesTo, "kubres");
+        model.addAttribute("citiesTo", locationRepository.findAll());
         return "cities";
     }
 
